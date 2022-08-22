@@ -4,33 +4,66 @@ const task = require("../models/task");
 const Task = require("../models/task");
 
 // student
-router.post("/student", async(req, res) => {
+router.post("/student", async (req, res) => {
     const student = new Student(req.body)
-    try{
+    try {
         await student.save()
         res.send(student);
 
-    }catch(err){
+    } catch (err) {
         res.send(err)
     }
 })
 
 // all student data
-router.get("/allStudent", async(req, res) => {
+router.get("/allStudent", async (req, res) => {
     const student = await Student.find({})
-    try{
+    try {
         res.send(student)
-    }catch(err){
+    } catch (err) {
         res.send(err)
     }
 })
 
 // student data by id
-router.get("/allStudent/:id", async(req, res) => {
+router.get("/allStudent/:id", async (req, res) => {
     const id = req.params.id;
+    try {
+        const student = await Student.findById(id)
+        res.send(student)
+    } catch (err) {
+        res.send(err)
+    }
+})
+
+// update
+router.patch("/update/:id", async(req, res) => {
+
+    const updates  = Object.keys(req.body)
+    const allowUpdates = ['name', 'email', 'password', 'age']
+    const isValidOperation = updates.every((update) => allowUpdates.includes(update))
+    if(!isValidOperation){
+        return res.status(400).send({error:"Invalid updates"})
+    }
+    // .................
+    try {
+        const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+        if (!student) {
+            return res.status(404).send()
+        }
+        res.send(student)
+    } catch (err) {
+        res.send(err);
+    }
+})
+
+router.delete("/delete/:id", async(req, res) => {
     try{
-       const student = await Student.findById(id)
-       res.send(student)
+        const student = await Student.findByIdAndDelete(req.params.id)
+        if(!student){
+            return res.status(404).send()
+        }
+        res.send(student)
     }catch(err){
         res.send(err)
     }
@@ -42,9 +75,9 @@ router.post("/task", (req, res) => {
     task.save().then(data => {
         res.send(data)
     })
-    .catch(err => {
-        res.send(err)
-    })
+        .catch(err => {
+            res.send(err)
+        })
 })
 
 // get all task
@@ -52,9 +85,9 @@ router.get("/allTask", (req, res) => {
     Task.find({}).then(data => {
         res.send(data)
     })
-    .catch(err => {
-        res.send(err)
-    })
+        .catch(err => {
+            res.send(err)
+        })
 })
 
 // get task by id
@@ -63,10 +96,24 @@ router.get("/allTask/:id", (req, res) => {
     Task.findById(id).then(data => {
         res.send(data)
     })
-    .catch(err => {
-        res.send(err)
-    })
+        .catch(err => {
+            res.send(err)
+        })
 })
+
+router.delete("/task/:id", async(req, res) => {
+    try{
+        const task = await Task.findByIdAndDelete(req.params.id);
+        if(!task){
+            return res.status(404).send()
+        }
+        res.send(task)
+
+    }catch(err){
+        res.send(err)
+    }
+})
+
 
 
 module.exports = router;
